@@ -7,32 +7,38 @@ const algorithm = 'aes-256-cbc';
 const secretKey = Buffer.from('ee0b442daa87851bb795aaf2c6c329698dc3491ba19da7885085146b2f3e817b', 'hex');
 
 // Krypterings- og dekrypteringsfunktioner
-const encrypt = (text, iv = null) => {
-  iv = iv ? Buffer.from(iv, 'hex') : crypto.randomBytes(16);
+const encrypt = (text) => {
+  if (typeof text !== 'string') {
+    console.error('Encryption error: Text must be a string.');
+    return null;
+  }
+
+  const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
   const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+
   return {
     iv: iv.toString('hex'),
     content: encrypted.toString('hex')
   };
 };
 
+
 const decrypt = (hash) => {
   if (!hash || typeof hash !== 'object' || !hash.iv || !hash.content) {
-    console.error('Invalid input for decryption. Expected object with iv and content properties:', hash);
-    return 'Invalid Data';
+    console.error('Decryption error: Invalid input format.');
+    return null;
   }
+
   try {
-    console.log(`Attempting to decrypt data with IV: ${hash.iv}`);
     const decipher = crypto.createDecipheriv(algorithm, secretKey, Buffer.from(hash.iv, 'hex'));
     const decrypted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
     return decrypted.toString();
   } catch (error) {
-    console.error(`Error during decryption. IV: ${hash.iv}, Error: ${error.message}`);
-    return 'Decryption Error';
+    console.error(`Decryption error: ${error.message}`);
+    return null;
   }
 };
-
 
 function getDecryptedInventory() {
   return new Promise((resolve, reject) => {

@@ -3,27 +3,31 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchMenu();
     setupSocket();
 });
-
 function fetchInventory() {
-    fetch('/api/inventory')
-      .then(response => response.json())
-      .then(data => {
-        const inventoryList = document.getElementById('inventory-list');
-        inventoryList.innerHTML = ''; // Clear the list before appending new items
-        if (Array.isArray(data)) {
-          data.forEach(item => {
+  fetch('/api/inventory')
+    .then(response => response.json())
+    .then(data => {
+      const inventoryList = document.getElementById('inventory-list');
+      inventoryList.innerHTML = ''; // Clear the list before appending new items
+      if (Array.isArray(data)) {
+        data.forEach(item => {
+          if (item.name && typeof item.quantity === 'number') {
             const listItem = document.createElement('li');
             listItem.textContent = `${item.name}: ${item.quantity}`;
             inventoryList.appendChild(listItem);
-          });
-        } else {
-          console.log('Received data is not an array:', data);
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching inventory:', error);
-      });
-  }
+          } else {
+            console.log('Received unexpected data:', item);
+          }
+        });
+      } else {
+        console.log('Received data is not an array:', data);
+      }
+    })
+    .catch(error => {
+      console.error('Error fetching inventory:', error);
+    });
+}
+
   
 function fetchMenu() {
     fetch('/api/menu')
